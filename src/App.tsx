@@ -4,9 +4,9 @@ import { motion, AnimatePresence } from 'motion/react';
 import { FileText, Upload, X, Loader2, FileUp, CheckCircle2 } from 'lucide-react';
 import { toast } from 'sonner';
 
-import { Button } from './components/ui/button';
-import { Card, CardContent } from './components/ui/card';
-import { Toaster } from './components/ui/sonner';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Toaster } from '@/components/ui/sonner';
 
 const WEBHOOK_URL = import.meta.env.VITE_WEBHOOK_URL || 'https://hooks.example.com/default';
 
