@@ -1,210 +1,252 @@
-import React, { useState, useCallback } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
+import React, { useState, useCallback, useRef } from 'react';
 import axios from 'axios';
 import { motion, AnimatePresence } from 'motion/react';
-import { Upload, FileText, CheckCircle2, AlertCircle, Loader2, X } from 'lucide-react';
+import { FileText, Upload, X, Loader2, FileUp, CheckCircle2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { Button } from './components/ui/button';
-import { Input } from './components/ui/input';
-import { Label } from './components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from './components/ui/card';
+import { Card, CardContent } from './components/ui/card';
 import { Toaster } from './components/ui/sonner';
 
-const formSchema = z.object({
-  webhookUrl: z.string().url({ message: "Please enter a valid URL" }),
-});
-
-type FormValues = z.infer<typeof formSchema>;
+const WEBHOOK_URL = import.meta.env.VITE_WEBHOOK_URL || 'https://hooks.example.com/default';
 
 export default function App() {
   const [file, setFile] = useState<File | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
-
-  const { register, handleSubmit, formState: { errors } } = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      webhookUrl: 'https://hooks.example.com/d72f-98a2',
-    }
-  });
+  const [uploadResponse, setUploadResponse] = useState<any>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const onDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
     const droppedFile = e.dataTransfer.files[0];
-    if (droppedFile) {
+    if (droppedFile && droppedFile.type === 'application/pdf') {
       setFile(droppedFile);
+      setUploadResponse(null);
+    } else if (droppedFile) {
+      toast.error('Please upload a PDF file');
     }
   }, []);
 
   const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
     if (selectedFile) {
-      setFile(selectedFile);
+      if (selectedFile.type === 'application/pdf') {
+        setFile(selectedFile);
+        setUploadResponse(null);
+      } else {
+        toast.error('Please upload a PDF file');
+      }
     }
   };
 
-  const removeFile = () => setFile(null);
-
-  const onSubmit = async (data: FormValues) => {
-    if (!file) {
-      toast.error('Please select a document first');
-      return;
-    }
+  const handleUpload = async () => {
+    if (!file) return;
 
     setIsUploading(true);
     const formData = new FormData();
     formData.append('file', file);
 
     try {
-      // Note: In a real app, you might want to send this through a proxy if CORS is an issue
-      // or if you need to hide the client IP.
-      await axios.post(data.webhookUrl, formData, {
+      const response = await axios.post(WEBHOOK_URL, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       });
-      toast.success('Document dispatched successfully!');
-      setFile(null);
+      setUploadResponse(response.data);
+      toast.success('PDF uploaded successfully!');
     } catch (error) {
       console.error('Upload failed:', error);
-      toast.error('Failed to dispatch document. Check the webhook URL and CORS settings.');
+      toast.error('Failed to upload PDF. Please check your connection or webhook URL.');
     } finally {
       setIsUploading(false);
     }
   };
 
+  const triggerFileInput = () => {
+    fileInputRef.current?.click();
+  };
+
+  const reset = () => {
+    setFile(null);
+    setUploadResponse(null);
+  };
+
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4 font-sans antialiased">
+    <div className="min-h-screen bg-[#fcfcfc] flex flex-col items-center justify-center p-6 font-sans antialiased text-[#1a1a1a]">
       <Toaster position="top-center" />
       
+      <div className="max-w-3xl w-full text-center mb-10 mt-[-40px]">
+        <motion.h1 
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-[28px] font-bold mb-4 tracking-tight"
+        >
+          Chat with PDF
+        </motion.h1>
+        <motion.p 
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="text-[#555] text-[15px] leading-[1.6] max-w-2xl mx-auto"
+        >
+          Upload any PDF to SciSpace Chat PDF, ask a question, and get concise,
+          citation-linked answers, summaries, and follow-ups in seconds—free tier, 256-
+          bit encrypted, no data training, supports 75 + languages.
+        </motion.p>
+      </div>
+
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, ease: "easeOut" }}
+        initial={{ opacity: 0, scale: 0.98 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ delay: 0.2 }}
+        className="w-full max-w-[720px]"
       >
-        <Card className="w-full max-w-[520px] border-none shadow-[0_4px_6px_-1px_rgba(0,0,0,0.05),0_10px_15px_-3px_rgba(0,0,0,0.03)] p-8 md:p-12 rounded-[24px]">
-          <CardHeader className="p-0 mb-8 text-center">
-            <CardTitle className="text-2xl font-semibold tracking-tight mb-2">Relay</CardTitle>
-            <CardDescription className="text-sm text-muted-foreground">
-              Send any document to a custom endpoint.
-            </CardDescription>
-          </CardHeader>
+        <Card className="border border-[#e5e7eb] shadow-[0_1px_3px_rgba(0,0,0,0.05)] rounded-xl overflow-hidden bg-white">
+          <CardContent className="p-10">
+            <div
+              onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+              onDragLeave={() => setIsDragging(false)}
+              onDrop={onDrop}
+              className={`
+                relative w-full min-h-[320px] border border-dashed rounded-lg flex flex-col items-center justify-center transition-all duration-200
+                ${isDragging ? 'border-[#ff6b35] bg-[#fff9f7]' : 'border-[#d1d5db] bg-[#fdfdfd]'}
+              `}
+            >
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".pdf"
+                className="hidden"
+                onChange={onFileChange}
+              />
 
-          <CardContent className="p-0">
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-              <div className="space-y-2">
-                <Label className="text-[12px] font-semibold uppercase tracking-[0.05em] text-muted-foreground">
-                  Upload Document
-                </Label>
-                
-                <div
-                  onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
-                  onDragLeave={() => setIsDragging(false)}
-                  onDrop={onDrop}
-                  onClick={() => document.getElementById('file-input')?.click()}
-                  className={`
-                    relative w-full h-[160px] border-2 border-dashed rounded-xl flex flex-col items-center justify-center cursor-pointer transition-all duration-200
-                    ${isDragging ? 'border-primary bg-secondary/50' : 'border-border bg-secondary'}
-                    ${file ? 'border-solid border-primary/20' : ''}
-                  `}
-                >
-                  <input
-                    id="file-input"
-                    type="file"
-                    className="hidden"
-                    onChange={onFileChange}
-                  />
-                  
-                  <AnimatePresence mode="wait">
-                    {!file ? (
-                      <motion.div
-                        key="empty"
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.9 }}
-                        className="flex flex-col items-center"
-                      >
-                        <Upload className="w-8 h-8 mb-3 text-muted-foreground" />
-                        <span className="text-sm text-muted-foreground">Drag and drop or click to browse</span>
-                      </motion.div>
-                    ) : (
-                      <motion.div
-                        key="file"
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.9 }}
-                        className="flex flex-col items-center w-full px-4"
-                      >
-                        <div className="flex items-center gap-3 bg-white p-3 rounded-lg border border-border w-full max-w-xs relative group">
-                          <div className="w-10 h-10 bg-secondary rounded flex items-center justify-center text-primary">
-                            <FileText className="w-5 h-5" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium truncate">{file.name}</p>
-                            <p className="text-xs text-muted-foreground">{(file.size / 1024).toFixed(1)} KB</p>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={(e) => { e.stopPropagation(); removeFile(); }}
-                            className="absolute -top-2 -right-2 bg-white border border-border rounded-full p-1 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity"
-                          >
-                            <X className="w-3 h-3" />
-                          </button>
-                        </div>
-                      </motion.div>
+              <AnimatePresence mode="wait">
+                {!file ? (
+                  <motion.div
+                    key="empty"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="flex flex-col items-center text-center"
+                  >
+                    <div className="w-[60px] h-[76px] bg-white rounded-md border border-[#e5e7eb] flex flex-col items-center justify-center mb-6 shadow-sm relative">
+                      <div className="absolute top-0 right-0 w-0 h-0 border-t-[12px] border-r-[12px] border-t-white border-r-[#e5e7eb] rounded-bl-sm" />
+                      <span className="text-[11px] font-bold text-[#4b5563] mt-2">PDF</span>
+                    </div>
+                    <h3 className="text-[19px] font-semibold text-[#374151] mb-1">
+                      Drag and drop or click here to browse
+                    </h3>
+                    <p className="text-[13px] text-[#9ca3af] mb-8">
+                      Max. 100 MB per file
+                    </p>
+                    
+                    <Button
+                      onClick={triggerFileInput}
+                      className="bg-[#ff6b35] hover:bg-[#e85a2a] text-white px-10 h-[46px] rounded-md font-bold flex items-center gap-2 transition-colors"
+                    >
+                      <FileUp className="w-5 h-5" />
+                      Upload PDF
+                    </Button>
+
+                    <button className="mt-6 text-[13px] text-[#0070f3] hover:underline font-medium">
+                      Or Try a sample pdf
+                    </button>
+                  </motion.div>
+                ) : uploadResponse ? (
+                  <motion.div
+                    key="success"
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="flex flex-col items-center text-center p-6"
+                  >
+                    <div className="w-16 h-16 bg-emerald-50 rounded-full flex items-center justify-center mb-4">
+                      <CheckCircle2 className="w-8 h-8 text-emerald-500" />
+                    </div>
+                    <h3 className="text-xl font-bold text-[#1a1a1a] mb-2">Upload Successful!</h3>
+                    <p className="text-sm text-[#666] mb-6">Your document "{file.name}" has been processed.</p>
+                    
+                    {uploadResponse && (
+                      <div className="w-full max-w-sm bg-[#f9fafb] border border-[#e5e7eb] rounded-lg p-4 text-left mb-6 overflow-auto max-h-[150px]">
+                        <p className="text-[11px] font-bold text-[#9ca3af] uppercase mb-2 tracking-wider">Webhook Response</p>
+                        <pre className="text-xs text-[#4b5563] whitespace-pre-wrap">
+                          {JSON.stringify(uploadResponse, null, 2)}
+                        </pre>
+                      </div>
                     )}
-                  </AnimatePresence>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="webhookUrl" className="text-[12px] font-semibold uppercase tracking-[0.05em] text-muted-foreground">
-                  Webhook Destination
-                </Label>
-                <Input
-                  id="webhookUrl"
-                  {...register('webhookUrl')}
-                  placeholder="https://api.service.com/v1/webhook"
-                  className={`h-12 px-4 rounded-lg border-border focus:ring-1 focus:ring-primary transition-all ${errors.webhookUrl ? 'border-destructive' : ''}`}
-                />
-                {errors.webhookUrl && (
-                  <p className="text-xs text-destructive mt-1 flex items-center gap-1">
-                    <AlertCircle className="w-3 h-3" />
-                    {errors.webhookUrl.message}
-                  </p>
-                )}
-              </div>
-
-              <Button
-                type="submit"
-                disabled={isUploading}
-                className="w-full h-14 bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg font-semibold text-sm transition-all active:scale-[0.98]"
-              >
-                {isUploading ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Dispatching...
-                  </>
+                    
+                    <Button
+                      onClick={reset}
+                      variant="outline"
+                      className="border-[#e5e7eb] text-[#374151]"
+                    >
+                      Upload Another
+                    </Button>
+                  </motion.div>
                 ) : (
-                  'Dispatch Request'
-                )}
-              </Button>
-            </form>
+                  <motion.div
+                    key="selected"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="flex flex-col items-center w-full max-w-md p-6"
+                  >
+                    <div className="w-full bg-white border border-[#e5e7eb] rounded-lg p-5 flex items-center gap-4 mb-8 shadow-sm relative group">
+                      <div className="w-10 h-12 bg-[#f9fafb] border border-[#e5e7eb] rounded flex items-center justify-center shrink-0">
+                        <FileText className="w-6 h-6 text-[#ff6b35]" />
+                      </div>
+                      <div className="flex-1 min-w-0 text-left">
+                        <p className="text-sm font-semibold text-[#1a1a1a] truncate">{file.name}</p>
+                        <p className="text-xs text-[#6b7280]">{(file.size / (1024 * 1024)).toFixed(2)} MB</p>
+                      </div>
+                      <button
+                        onClick={() => setFile(null)}
+                        className="p-1.5 hover:bg-[#f3f4f6] rounded-full transition-colors"
+                      >
+                        <X className="w-4 h-4 text-[#6b7280]" />
+                      </button>
+                    </div>
 
-            <div className="mt-8 pt-6 border-t border-border flex justify-between items-center">
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
-                <span className="text-[12px] text-muted-foreground">API Ready</span>
-              </div>
-              <span className="text-[12px] text-muted-foreground font-medium">v1.4.0</span>
+                    <div className="flex gap-3 w-full">
+                      <Button
+                        variant="outline"
+                        onClick={() => setFile(null)}
+                        disabled={isUploading}
+                        className="flex-1 h-12 border-[#e5e7eb] text-[#374151] font-medium"
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        onClick={handleUpload}
+                        disabled={isUploading}
+                        className="flex-1 h-12 bg-[#ff6b35] hover:bg-[#e85a2a] text-white font-bold transition-colors"
+                      >
+                        {isUploading ? (
+                          <>
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            Uploading...
+                          </>
+                        ) : (
+                          'Confirm Upload'
+                        )}
+                      </Button>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           </CardContent>
         </Card>
       </motion.div>
+      
+      <div className="mt-12 text-[#9ca3af] text-[12px] flex items-center gap-4">
+        <span>256-bit encrypted</span>
+        <span className="w-1 h-1 bg-[#d1d5db] rounded-full" />
+        <span>No data training</span>
+        <span className="w-1 h-1 bg-[#d1d5db] rounded-full" />
+        <span>Supports 75+ languages</span>
+      </div>
     </div>
   );
 }
