@@ -1,0 +1,6 @@
+{
+  "name": "Webhook Uploader",
+  "description": "A simple and polished interface to upload documents and send them to a webhook URL.",
+  "requestFramePermissions": [],
+  "majorCapabilities": []
+}
