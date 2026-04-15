@@ -144,7 +144,7 @@ export default function App() {
                     
                     <Button
                       onClick={triggerFileInput}
-                      className="bg-[#ff6b35] hover:bg-[#e85a2a] text-white px-10 h-[46px] rounded-md font-bold flex items-center gap-2 transition-colors"
+                      className="bg-[#0070f3] hover:bg-[#0060df] text-white px-10 h-[46px] rounded-md font-bold flex items-center gap-2 transition-colors"
                     >
                       <FileUp className="w-5 h-5" />
                       Upload PDF
@@ -194,7 +194,7 @@ export default function App() {
                   >
                     <div className="w-full bg-white border border-[#e5e7eb] rounded-lg p-5 flex items-center gap-4 mb-8 shadow-sm relative group">
                       <div className="w-10 h-12 bg-[#f9fafb] border border-[#e5e7eb] rounded flex items-center justify-center shrink-0">
-                        <FileText className="w-6 h-6 text-[#ff6b35]" />
+                        <FileText className="w-6 h-6 text-[#0070f3]" />
                       </div>
                       <div className="flex-1 min-w-0 text-left">
                         <p className="text-sm font-semibold text-[#1a1a1a] truncate">{file.name}</p>
@@ -220,7 +220,7 @@ export default function App() {
                       <Button
                         onClick={handleUpload}
                         disabled={isUploading}
-                        className="flex-1 h-12 bg-[#ff6b35] hover:bg-[#e85a2a] text-white font-bold transition-colors"
+                        className="flex-1 h-12 bg-[#0070f3] hover:bg-[#0060df] text-white font-bold transition-colors"
                       >
                         {isUploading ? (
                           <>
