@@ -7,11 +7,11 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Upload, FileText, CheckCircle2, AlertCircle, Loader2, X } from 'lucide-react';
 import { toast } from 'sonner';
 
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Toaster } from '@/components/ui/sonner';
+import { Button } from './components/ui/button';
+import { Input } from './components/ui/input';
+import { Label } from './components/ui/label';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from './components/ui/card';
+import { Toaster } from './components/ui/sonner';
 
 const formSchema = z.object({
   webhookUrl: z.string().url({ message: "Please enter a valid URL" }),
