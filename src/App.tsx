@@ -22,29 +22,34 @@ export default function App() {
     'application/pdf',
     'application/msword',
     'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    'text/plain'
+    'text/plain',
+    'text/csv'
   ];
+
+  const isSupported = (type: string) => {
+    return ALLOWED_TYPES.includes(type) || type.startsWith('image/') || type.startsWith('video/');
+  };
 
   const onDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
     const droppedFile = e.dataTransfer.files[0];
-    if (droppedFile && ALLOWED_TYPES.includes(droppedFile.type)) {
+    if (droppedFile && isSupported(droppedFile.type)) {
       setFile(droppedFile);
       setUploadResponse(null);
     } else if (droppedFile) {
-      toast.error('Please upload a PDF, Word, or Text file');
+      toast.error('File type not supported. Please upload documents, images, or videos.');
     }
   }, []);
 
   const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
     if (selectedFile) {
-      if (ALLOWED_TYPES.includes(selectedFile.type)) {
+      if (isSupported(selectedFile.type)) {
         setFile(selectedFile);
         setUploadResponse(null);
       } else {
-        toast.error('Please upload a PDF, Word, or Text file');
+        toast.error('File type not supported. Please upload documents, images, or videos.');
       }
     }
   };
@@ -98,17 +103,33 @@ export default function App() {
           animate={{ opacity: 1, y: 0 }}
           className="text-[28px] font-bold mb-4 tracking-tight"
         >
-          Chat with Documents
+          Universal File Upload
         </motion.h1>
         <motion.p 
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="text-[#555] text-[15px] leading-[1.6] max-w-2xl mx-auto"
+          className="text-[#555] text-[15px] leading-[1.6] max-w-2xl mx-auto mb-6"
         >
-          Upload your PDFs, Word docs, or Text files, ask a question, and get concise,
-          citation-linked answers, summaries, and follow-ups in seconds.
+          Upload your PDFs, Documents, CSVs, Images, or Videos to your webhook.
+          Fast, secure, and metadata-enriched processing.
         </motion.p>
+
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.15 }}
+          className="flex flex-col items-center gap-3 max-w-xl mx-auto"
+        >
+          <span className="text-[13px] font-bold text-[#1a1a1a] uppercase tracking-wider">Supported Formats:</span>
+          <div className="flex flex-wrap justify-center gap-2">
+            {['pdf', 'txt', 'docx', 'Csv', 'images', 'videos'].map((type) => (
+              <span key={type} className="px-4 py-1.5 bg-[#f3f4f6] border border-[#e5e7eb] rounded-lg text-[13px] font-semibold text-[#374151] shadow-sm transition-transform hover:scale-105">
+                {type}
+              </span>
+            ))}
+          </div>
+        </motion.div>
       </div>
 
       <motion.div
@@ -131,7 +152,7 @@ export default function App() {
               <input
                 ref={fileInputRef}
                 type="file"
-                accept=".pdf,.doc,.docx,.txt"
+                accept=".pdf,.doc,.docx,.txt,.csv,image/*,video/*"
                 className="hidden"
                 onChange={onFileChange}
               />
@@ -153,7 +174,7 @@ export default function App() {
                       Drag and drop or click here to browse
                     </h3>
                     <p className="text-[13px] text-[#9ca3af] mb-8">
-                      PDF, DOC, DOCX, TXT (Max. 100 MB)
+                      Docs, CSV, Images, Video (Max. 100 MB)
                     </p>
                     
                     <Button
@@ -161,7 +182,7 @@ export default function App() {
                       className="bg-[#0070f3] hover:bg-[#0060df] text-white px-10 h-[46px] rounded-md font-bold flex items-center gap-2 transition-colors"
                     >
                       <Upload className="w-5 h-5" />
-                      Select Document
+                      Select File
                     </Button>
 
                     <button className="mt-6 text-[13px] text-[#0070f3] hover:underline font-medium">
