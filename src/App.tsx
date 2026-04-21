@@ -9,6 +9,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Toaster } from '@/components/ui/sonner';
 
 const WEBHOOK_URL = import.meta.env.VITE_WEBHOOK_URL || 'https://hooks.example.com/default';
+const USER_EMAIL = import.meta.env.VITE_USER_EMAIL || 'benjamin.business102@gmail.com';
 
 export default function App() {
   const [file, setFile] = useState<File | null>(null);
@@ -54,6 +55,13 @@ export default function App() {
     setIsUploading(true);
     const formData = new FormData();
     formData.append('file', file);
+    
+    // Adding metadata to the request
+    formData.append('userId', USER_EMAIL);
+    formData.append('fileName', file.name);
+    formData.append('fileType', file.type);
+    formData.append('fileSize', file.size.toString());
+    formData.append('uploadedAt', new Date().toISOString());
 
     try {
       const response = await axios.post(WEBHOOK_URL, formData, {
