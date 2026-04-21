@@ -17,26 +17,33 @@ export default function App() {
   const [uploadResponse, setUploadResponse] = useState<any>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const ALLOWED_TYPES = [
+    'application/pdf',
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'text/plain'
+  ];
+
   const onDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
     const droppedFile = e.dataTransfer.files[0];
-    if (droppedFile && droppedFile.type === 'application/pdf') {
+    if (droppedFile && ALLOWED_TYPES.includes(droppedFile.type)) {
       setFile(droppedFile);
       setUploadResponse(null);
     } else if (droppedFile) {
-      toast.error('Please upload a PDF file');
+      toast.error('Please upload a PDF, Word, or Text file');
     }
   }, []);
 
   const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
     if (selectedFile) {
-      if (selectedFile.type === 'application/pdf') {
+      if (ALLOWED_TYPES.includes(selectedFile.type)) {
         setFile(selectedFile);
         setUploadResponse(null);
       } else {
-        toast.error('Please upload a PDF file');
+        toast.error('Please upload a PDF, Word, or Text file');
       }
     }
   };
@@ -55,10 +62,10 @@ export default function App() {
         },
       });
       setUploadResponse(response.data);
-      toast.success('PDF uploaded successfully!');
+      toast.success('Document uploaded successfully!');
     } catch (error) {
       console.error('Upload failed:', error);
-      toast.error('Failed to upload PDF. Please check your connection or webhook URL.');
+      toast.error('Failed to upload document. Please check your connection or webhook URL.');
     } finally {
       setIsUploading(false);
     }
@@ -83,7 +90,7 @@ export default function App() {
           animate={{ opacity: 1, y: 0 }}
           className="text-[28px] font-bold mb-4 tracking-tight"
         >
-          Chat with PDF
+          Chat with Documents
         </motion.h1>
         <motion.p 
           initial={{ opacity: 0, y: -10 }}
@@ -91,9 +98,8 @@ export default function App() {
           transition={{ delay: 0.1 }}
           className="text-[#555] text-[15px] leading-[1.6] max-w-2xl mx-auto"
         >
-          Upload any PDF to SciSpace Chat PDF, ask a question, and get concise,
-          citation-linked answers, summaries, and follow-ups in seconds—free tier, 256-
-          bit encrypted, no data training, supports 75 + languages.
+          Upload your PDFs, Word docs, or Text files, ask a question, and get concise,
+          citation-linked answers, summaries, and follow-ups in seconds.
         </motion.p>
       </div>
 
@@ -117,7 +123,7 @@ export default function App() {
               <input
                 ref={fileInputRef}
                 type="file"
-                accept=".pdf"
+                accept=".pdf,.doc,.docx,.txt"
                 className="hidden"
                 onChange={onFileChange}
               />
@@ -133,21 +139,21 @@ export default function App() {
                   >
                     <div className="w-[60px] h-[76px] bg-white rounded-md border border-[#e5e7eb] flex flex-col items-center justify-center mb-6 shadow-sm relative">
                       <div className="absolute top-0 right-0 w-0 h-0 border-t-[12px] border-r-[12px] border-t-white border-r-[#e5e7eb] rounded-bl-sm" />
-                      <span className="text-[11px] font-bold text-[#4b5563] mt-2">PDF</span>
+                      <FileUp className="w-6 h-6 text-[#0070f3]" />
                     </div>
                     <h3 className="text-[19px] font-semibold text-[#374151] mb-1">
                       Drag and drop or click here to browse
                     </h3>
                     <p className="text-[13px] text-[#9ca3af] mb-8">
-                      Max. 100 MB per file
+                      PDF, DOC, DOCX, TXT (Max. 100 MB)
                     </p>
                     
                     <Button
                       onClick={triggerFileInput}
                       className="bg-[#0070f3] hover:bg-[#0060df] text-white px-10 h-[46px] rounded-md font-bold flex items-center gap-2 transition-colors"
                     >
-                      <FileUp className="w-5 h-5" />
-                      Upload PDF
+                      <Upload className="w-5 h-5" />
+                      Select Document
                     </Button>
 
                     <button className="mt-6 text-[13px] text-[#0070f3] hover:underline font-medium">
