@@ -20,14 +20,14 @@ export default function App() {
 
   const ALLOWED_TYPES = [
     'application/pdf',
-    'application/msword',
-    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'application/vnd.oasis.opendocument.spreadsheet',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     'text/plain',
     'text/csv'
   ];
 
   const isSupported = (type: string) => {
-    return ALLOWED_TYPES.includes(type) || type.startsWith('image/') || type.startsWith('video/');
+    return ALLOWED_TYPES.includes(type);
   };
 
   const onDrop = useCallback((e: React.DragEvent) => {
@@ -38,7 +38,7 @@ export default function App() {
       setFile(droppedFile);
       setUploadResponse(null);
     } else if (droppedFile) {
-      toast.error('File type not supported. Please upload documents, images, or videos.');
+      toast.error('File type not supported. Please upload PDF, ODS, XLSX, CSV, or TXT files.');
     }
   }, []);
 
@@ -49,7 +49,7 @@ export default function App() {
         setFile(selectedFile);
         setUploadResponse(null);
       } else {
-        toast.error('File type not supported. Please upload documents, images, or videos.');
+        toast.error('File type not supported. Please upload PDF, ODS, XLSX, CSV, or TXT files.');
       }
     }
   };
@@ -111,7 +111,7 @@ export default function App() {
           transition={{ delay: 0.1 }}
           className="text-[#555] text-[15px] leading-[1.6] max-w-2xl mx-auto mb-6"
         >
-          Upload your PDFs, Documents, CSVs, Images, or Videos to your webhook.
+          Upload your PDFs, Spreadsheets, CSVs, or Text files to your webhook.
           Fast, secure, and metadata-enriched processing.
         </motion.p>
 
@@ -123,7 +123,7 @@ export default function App() {
         >
           <span className="text-[13px] font-bold text-[#1a1a1a] uppercase tracking-wider">Supported Formats:</span>
           <div className="flex flex-wrap justify-center gap-2">
-            {['pdf', 'txt', 'docx', 'Csv', 'images', 'videos'].map((type) => (
+            {['pdf', 'ods', 'xlsx', 'Csv', 'txt'].map((type) => (
               <span key={type} className="px-4 py-1.5 bg-[#f3f4f6] border border-[#e5e7eb] rounded-lg text-[13px] font-semibold text-[#374151] shadow-sm transition-transform hover:scale-105">
                 {type}
               </span>
@@ -152,7 +152,7 @@ export default function App() {
               <input
                 ref={fileInputRef}
                 type="file"
-                accept=".pdf,.doc,.docx,.txt,.csv,image/*,video/*"
+                accept=".pdf,.ods,.xlsx,.csv,.txt"
                 className="hidden"
                 onChange={onFileChange}
               />
@@ -174,7 +174,7 @@ export default function App() {
                       Drag and drop or click here to browse
                     </h3>
                     <p className="text-[13px] text-[#9ca3af] mb-8">
-                      Docs, CSV, Images, Video (Max. 100 MB)
+                      PDF, ODS, XLSX, CSV, TXT (Max. 100 MB)
                     </p>
                     
                     <Button
