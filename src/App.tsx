@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Toaster } from '@/components/ui/sonner';
+import ChatInterface from '@/components/ChatInterface';
 
 const WEBHOOK_URL = import.meta.env.VITE_WEBHOOK_URL || 'https://hooks.example.com/default';
 const USER_EMAIL = import.meta.env.VITE_USER_EMAIL || 'benjamin.business102@gmail.com';
@@ -16,10 +17,13 @@ export default function App() {
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadResponse, setUploadResponse] = useState<any>(null);
+  const [isChatting, setIsChatting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const ALLOWED_TYPES = [
     'application/pdf',
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
     'application/vnd.oasis.opendocument.spreadsheet',
     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     'text/plain',
@@ -91,7 +95,19 @@ export default function App() {
   const reset = () => {
     setFile(null);
     setUploadResponse(null);
+    setIsChatting(false);
   };
+
+  if (isChatting && file) {
+    return (
+      <div className="min-h-screen bg-[#fcfcfc] flex flex-col items-center justify-center p-6 font-sans antialiased text-[#1a1a1a]">
+        <Toaster position="top-center" />
+        <div className="w-full max-w-4xl">
+          <ChatInterface file={file} onReset={reset} />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#fcfcfc] flex flex-col items-center justify-center p-6 font-sans antialiased text-[#1a1a1a]">
@@ -123,7 +139,7 @@ export default function App() {
         >
           <span className="text-[13px] font-bold text-[#1a1a1a] uppercase tracking-wider">Supported Formats:</span>
           <div className="flex flex-wrap justify-center gap-2">
-            {['pdf', 'ods', 'xlsx', 'Csv', 'txt'].map((type) => (
+            {['pdf', 'doc', 'docx', 'txt', 'ods', 'xlsx', 'Csv'].map((type) => (
               <span key={type} className="px-4 py-1.5 bg-[#f3f4f6] border border-[#e5e7eb] rounded-lg text-[13px] font-semibold text-[#374151] shadow-sm transition-transform hover:scale-105">
                 {type}
               </span>
@@ -152,7 +168,7 @@ export default function App() {
               <input
                 ref={fileInputRef}
                 type="file"
-                accept=".pdf,.ods,.xlsx,.csv,.txt"
+                accept=".pdf,.doc,.docx,.ods,.xlsx,.csv,.txt"
                 className="hidden"
                 onChange={onFileChange}
               />
@@ -174,7 +190,7 @@ export default function App() {
                       Drag and drop or click here to browse
                     </h3>
                     <p className="text-[13px] text-[#9ca3af] mb-8">
-                      PDF, ODS, XLSX, CSV, TXT (Max. 100 MB)
+                      PDF, DOC, DOCX, ODS, XLSX, CSV, TXT (Max. 100 MB)
                     </p>
                     
                     <Button
@@ -211,13 +227,21 @@ export default function App() {
                       </div>
                     )}
                     
-                    <Button
-                      onClick={reset}
-                      variant="outline"
-                      className="border-[#e5e7eb] text-[#374151]"
-                    >
-                      Upload Another
-                    </Button>
+                    <div className="flex gap-3 w-full">
+                      <Button
+                        onClick={reset}
+                        variant="outline"
+                        className="flex-1 border-[#e5e7eb] text-[#374151]"
+                      >
+                        Upload Another
+                      </Button>
+                      <Button
+                        onClick={() => setIsChatting(true)}
+                        className="flex-1 bg-[#0070f3] hover:bg-[#0060df] text-white font-bold"
+                      >
+                        Start Chatting
+                      </Button>
+                    </div>
                   </motion.div>
                 ) : (
                   <motion.div
