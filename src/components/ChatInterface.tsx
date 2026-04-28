@@ -16,7 +16,17 @@ interface ChatInterfaceProps {
   onReset: () => void;
 }
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+const getGenAI = () => {
+  try {
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) return null;
+    return new GoogleGenAI({ apiKey });
+  } catch {
+    return null;
+  }
+};
+
+const ai = getGenAI();
 const CHAT_WEBHOOK_URL = import.meta.env.VITE_CHAT_WEBHOOK_URL;
 const USER_EMAIL = import.meta.env.VITE_USER_EMAIL;
 
@@ -60,6 +70,10 @@ export default function ChatInterface({ file, onReset }: ChatInterfaceProps) {
   }, [file]);
 
   const initialGreeting = async (base64: string, mimeType: string) => {
+    if (!ai) {
+      setMessages([{ role: 'model', content: "AI setup is incomplete. Please check your configuration." }]);
+      return;
+    }
     setIsTyping(true);
     try {
       const response = await ai.models.generateContent({
@@ -94,7 +108,7 @@ export default function ChatInterface({ file, onReset }: ChatInterfaceProps) {
   }, [messages, isTyping]);
 
   const handleSend = async () => {
-    if (!input.trim() || isTyping || !fileData) return;
+    if (!input.trim() || isTyping || !fileData || !ai) return;
 
     const userMessage = input.trim();
     setInput('');
