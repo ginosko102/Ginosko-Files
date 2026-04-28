@@ -152,7 +152,7 @@ export default function App() {
               <h2 className="text-[22px] font-bold tracking-tight">Webhook Chat Interface</h2>
             </div>
           </div>
-          <WebhookChat />
+          <WebhookChat file={file || undefined} uploadResponse={uploadResponse} />
         </div>
       ) : (
         <>

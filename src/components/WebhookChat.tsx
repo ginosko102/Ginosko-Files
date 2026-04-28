@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
-import { Send, Bot, User, Loader2, Globe, Sparkles, MessageSquare } from 'lucide-react';
+import { Send, Bot, User, Loader2, Globe, Sparkles, MessageSquare, FileText } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Button } from './ui/button';
@@ -11,7 +11,12 @@ interface Message {
   content: string;
 }
 
-export default function WebhookChat() {
+interface WebhookChatProps {
+  file?: File;
+  uploadResponse?: any;
+}
+
+export default function WebhookChat({ file, uploadResponse }: WebhookChatProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -33,12 +38,39 @@ export default function WebhookChat() {
     setIsTyping(true);
 
     try {
-      // Note: localhost will only work if the user is running the app and the webhook on the same machine
-      // or if they have a tunnel set up.
-      const response = await axios.post(webhookUrl, {
+      // Prepare the payload
+      const payload: any = {
         message: userMessage,
         timestamp: new Date().toISOString(),
-      });
+        chatHistory: messages,
+      };
+
+      // Add file context if available
+      if (file) {
+        payload.fileContext = {
+          name: file.name,
+          type: file.type,
+          size: file.size,
+          lastModified: file.lastModified,
+          uploadStatus: uploadResponse ? 'success' : 'pending'
+        };
+        
+        if (uploadResponse) {
+          payload.uploadResponse = uploadResponse;
+        }
+
+        // Send a small preview of the file text if it's a text file
+        if (file.type.startsWith('text/') || file.name.endsWith('.json') || file.name.endsWith('.csv')) {
+          try {
+            const text = await file.slice(0, 5000).text();
+            payload.filePreview = text;
+          } catch (err) {
+            console.error('Failed to read file preview:', err);
+          }
+        }
+      }
+
+      const response = await axios.post(webhookUrl, payload);
 
       // Assuming the response from the webhook is either a string or an object with a 'response' or 'output' field
       let botResponse = '';
@@ -84,12 +116,22 @@ export default function WebhookChat() {
             <h3 className="text-[17px] font-bold text-[#1a1a1a]">Webhook Interaction</h3>
             <div className="flex items-center gap-2">
               <span className="flex w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              <p className="text-[12px] font-medium text-[#6b7280] font-mono truncate max-w-[200px] sm:max-w-[300px]">
+              <p className="text-[12px] font-medium text-[#6b7280] font-mono truncate max-w-[150px] sm:max-w-[250px]">
                 {webhookUrl}
               </p>
             </div>
           </div>
         </div>
+        
+        {file && (
+          <div className="flex items-center gap-2 px-3 py-1.5 bg-[#f0f9ff] border border-[#bae6fd] rounded-lg">
+            <FileText size={14} className="text-[#0369a1]" />
+            <div className="flex flex-col">
+              <span className="text-[10px] font-bold text-[#0369a1] uppercase leading-none">Context Loaded</span>
+              <span className="text-[11px] font-medium text-[#0c4a6e] truncate max-w-[100px] leading-tight">{file.name}</span>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Messages */}
