@@ -6,7 +6,8 @@ import { Toaster as Sonner, type ToasterProps } from "sonner"
 import { CircleCheck, Info, TriangleAlert, OctagonX, Loader2 } from "lucide-react"
 
 const Toaster = ({ ...props }: ToasterProps) => {
-  const { theme = "system" } = useTheme()
+  const context = useTheme();
+  const theme = context?.theme || "light";
 
   return (
     <Sonner

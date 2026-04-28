@@ -1,15 +1,16 @@
 import React, { useState, useCallback, useRef } from 'react';
 import axios from 'axios';
 import { motion, AnimatePresence } from 'motion/react';
-import { FileText, Upload, X, Loader2, FileUp, CheckCircle2 } from 'lucide-react';
+import { FileText, Upload, X, Loader2, FileUp, CheckCircle2, MessageSquare, Globe } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Toaster } from '@/components/ui/sonner';
 import ChatInterface from '@/components/ChatInterface';
+import WebhookChat from '@/components/WebhookChat';
 
-const WEBHOOK_URL = import.meta.env.VITE_WEBHOOK_URL || 'https://hooks.example.com/default';
+const WEBHOOK_URL = import.meta.env.VITE_WEBHOOK_URL || 'http://localhost:5678/webhook-test/884d7456-8a98-4c8d-9920-e08ebcc35f1c';
 const USER_EMAIL = import.meta.env.VITE_USER_EMAIL || 'benjamin.business102@gmail.com';
 
 export default function App() {
@@ -18,6 +19,7 @@ export default function App() {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadResponse, setUploadResponse] = useState<any>(null);
   const [isChatting, setIsChatting] = useState(false);
+  const [viewMode, setViewMode] = useState<'upload' | 'webhook'>('upload');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const ALLOWED_TYPES = [
@@ -58,11 +60,6 @@ export default function App() {
 
   const handleUpload = async () => {
     if (!file) return;
-
-    if (WEBHOOK_URL.includes('hooks.example.com')) {
-      toast.error('Webhook URL not configured. Please set VITE_WEBHOOK_URL in your environment variables.');
-      return;
-    }
 
     setIsUploading(true);
     const formData = new FormData();
@@ -105,22 +102,61 @@ export default function App() {
     setIsChatting(false);
   };
 
-  if (isChatting && file && uploadResponse) {
-    return (
-      <div className="min-h-screen bg-[#fcfcfc] flex flex-col items-center justify-center p-6 font-sans antialiased text-[#1a1a1a]">
-        <Toaster position="top-center" />
-        <div className="w-full max-w-4xl">
-          <ChatInterface file={file} onReset={reset} />
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-[#fcfcfc] flex flex-col items-center justify-center p-6 font-sans antialiased text-[#1a1a1a]">
       <Toaster position="top-center" />
       
-      <div className="max-w-3xl w-full text-center mb-10 mt-[-40px]">
+      {/* Mode Switcher - visible unless chatting with a file */}
+      {!isChatting && (
+        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50 bg-white/80 backdrop-blur-md border border-[#e5e7eb] p-1 rounded-2xl shadow-sm flex items-center gap-1">
+          <button
+            onClick={() => setViewMode('upload')}
+            className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-[14px] font-bold transition-all ${
+              viewMode === 'upload' 
+                ? 'bg-[#1a1a1a] text-white shadow-md' 
+                : 'text-[#666] hover:bg-[#f3f4f6]'
+            }`}
+          >
+            <Upload size={16} />
+            File Upload
+          </button>
+          <button
+            onClick={() => setViewMode('webhook')}
+            className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-[14px] font-bold transition-all ${
+              viewMode === 'webhook' 
+                ? 'bg-[#1a1a1a] text-white shadow-md' 
+                : 'text-[#666] hover:bg-[#f3f4f6]'
+            }`}
+          >
+            <Globe size={16} />
+            Webhook Chat
+          </button>
+        </div>
+      )}
+
+      {isChatting && file && uploadResponse ? (
+        <div className="w-full max-w-4xl mt-12">
+          <div className="mb-6 flex justify-between items-center">
+            <h2 className="text-xl font-bold flex items-center gap-2">
+              <MessageSquare className="text-[#0070f3]" />
+              AI Chat
+            </h2>
+            <Button variant="ghost" onClick={() => setIsChatting(false)}>Back to Home</Button>
+          </div>
+          <ChatInterface file={file} onReset={reset} />
+        </div>
+      ) : viewMode === 'webhook' ? (
+        <div className="w-full max-w-5xl mt-12">
+          <div className="mb-8 flex justify-between items-center">
+            <div className="flex items-center gap-4">
+              <h2 className="text-[22px] font-bold tracking-tight">Webhook Chat Interface</h2>
+            </div>
+          </div>
+          <WebhookChat />
+        </div>
+      ) : (
+        <>
+          <div className="max-w-3xl w-full text-center mb-10 mt-[-40px]">
         <motion.h1 
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -137,24 +173,6 @@ export default function App() {
           Upload your PDFs, Spreadsheets, CSVs, or Text files to your webhook.
           Fast, secure, and metadata-enriched processing.
         </motion.p>
-
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.12 }}
-          className="flex justify-center mb-6"
-        >
-          <div className={`px-3 py-1 rounded-full flex items-center gap-2 border text-[11px] font-bold uppercase tracking-wider ${
-            WEBHOOK_URL.includes('hooks.example.com') 
-              ? 'bg-amber-50 border-amber-200 text-amber-700' 
-              : 'bg-emerald-50 border-emerald-200 text-emerald-700'
-          }`}>
-            <div className={`w-1.5 h-1.5 rounded-full ${
-              WEBHOOK_URL.includes('hooks.example.com') ? 'bg-amber-500 animate-pulse' : 'bg-emerald-500'
-            }`} />
-            {WEBHOOK_URL.includes('hooks.example.com') ? 'Webhook: Config Required' : 'Webhook: Connected'}
-          </div>
-        </motion.div>
 
         <motion.div 
           initial={{ opacity: 0 }}
@@ -326,6 +344,8 @@ export default function App() {
           </CardContent>
         </Card>
       </motion.div>
+    </>
+      )}
       
       <div className="mt-12 text-[#9ca3af] text-[12px] flex items-center gap-4">
         <span>256-bit encrypted</span>
