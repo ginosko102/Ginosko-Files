@@ -86,7 +86,7 @@ export default function App() {
     } catch (error) {
       console.error('Upload failed:', error);
       if (axios.isAxiosError(error) && error.response?.status === 404) {
-        toast.error('Upload failed (404): The webhook URL was not found. Please verify your VITE_WEBHOOK_URL setting.');
+        toast.error(`Webhook endpoint not found (404). This usually means the URL is either incomplete, has a typo, or the automation (Make/Zapier) isn't "turned on".`);
       } else {
         toast.error('Failed to upload document. Please check your connection or webhook URL.');
       }
@@ -132,11 +132,29 @@ export default function App() {
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="text-[#555] text-[15px] leading-[1.6] max-w-2xl mx-auto mb-6"
+          className="text-[#555] text-[15px] leading-[1.6] max-w-2xl mx-auto mb-4"
         >
           Upload your PDFs, Spreadsheets, CSVs, or Text files to your webhook.
           Fast, secure, and metadata-enriched processing.
         </motion.p>
+
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.12 }}
+          className="flex justify-center mb-6"
+        >
+          <div className={`px-3 py-1 rounded-full flex items-center gap-2 border text-[11px] font-bold uppercase tracking-wider ${
+            WEBHOOK_URL.includes('hooks.example.com') 
+              ? 'bg-amber-50 border-amber-200 text-amber-700' 
+              : 'bg-emerald-50 border-emerald-200 text-emerald-700'
+          }`}>
+            <div className={`w-1.5 h-1.5 rounded-full ${
+              WEBHOOK_URL.includes('hooks.example.com') ? 'bg-amber-500 animate-pulse' : 'bg-emerald-500'
+            }`} />
+            {WEBHOOK_URL.includes('hooks.example.com') ? 'Webhook: Config Required' : 'Webhook: Connected'}
+          </div>
+        </motion.div>
 
         <motion.div 
           initial={{ opacity: 0 }}
