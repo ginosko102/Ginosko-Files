@@ -59,6 +59,11 @@ export default function App() {
   const handleUpload = async () => {
     if (!file) return;
 
+    if (WEBHOOK_URL.includes('hooks.example.com')) {
+      toast.error('Webhook URL not configured. Please set VITE_WEBHOOK_URL in your environment variables.');
+      return;
+    }
+
     setIsUploading(true);
     const formData = new FormData();
     formData.append('file', file);
@@ -80,7 +85,11 @@ export default function App() {
       toast.success('Document uploaded successfully!');
     } catch (error) {
       console.error('Upload failed:', error);
-      toast.error('Failed to upload document. Please check your connection or webhook URL.');
+      if (axios.isAxiosError(error) && error.response?.status === 404) {
+        toast.error('Upload failed (404): The webhook URL was not found. Please verify your VITE_WEBHOOK_URL setting.');
+      } else {
+        toast.error('Failed to upload document. Please check your connection or webhook URL.');
+      }
     } finally {
       setIsUploading(false);
     }
@@ -96,7 +105,7 @@ export default function App() {
     setIsChatting(false);
   };
 
-  if (isChatting && file) {
+  if (isChatting && file && uploadResponse) {
     return (
       <div className="min-h-screen bg-[#fcfcfc] flex flex-col items-center justify-center p-6 font-sans antialiased text-[#1a1a1a]">
         <Toaster position="top-center" />
@@ -137,7 +146,7 @@ export default function App() {
         >
           <span className="text-[13px] font-bold text-[#1a1a1a] uppercase tracking-wider">Supported Formats:</span>
           <div className="flex flex-wrap justify-center gap-2">
-            {['pdf', 'ods', 'xlsx', 'Csv', 'txt'].map((type) => (
+            {['pdf', 'ods', 'xlsx', 'csv', 'txt'].map((type) => (
               <span key={type} className="px-4 py-1.5 bg-[#f3f4f6] border border-[#e5e7eb] rounded-lg text-[13px] font-semibold text-[#374151] shadow-sm transition-transform hover:scale-105">
                 {type}
               </span>
