@@ -22,8 +22,6 @@ export default function App() {
 
   const ALLOWED_TYPES = [
     'application/pdf',
-    'application/msword',
-    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
     'application/vnd.oasis.opendocument.spreadsheet',
     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     'text/plain',
@@ -139,7 +137,7 @@ export default function App() {
         >
           <span className="text-[13px] font-bold text-[#1a1a1a] uppercase tracking-wider">Supported Formats:</span>
           <div className="flex flex-wrap justify-center gap-2">
-            {['pdf', 'doc', 'docx', 'txt', 'ods', 'xlsx', 'Csv'].map((type) => (
+            {['pdf', 'ods', 'xlsx', 'Csv', 'txt'].map((type) => (
               <span key={type} className="px-4 py-1.5 bg-[#f3f4f6] border border-[#e5e7eb] rounded-lg text-[13px] font-semibold text-[#374151] shadow-sm transition-transform hover:scale-105">
                 {type}
               </span>
@@ -168,7 +166,7 @@ export default function App() {
               <input
                 ref={fileInputRef}
                 type="file"
-                accept=".pdf,.doc,.docx,.ods,.xlsx,.csv,.txt"
+                accept=".pdf,.ods,.xlsx,.csv,.txt"
                 className="hidden"
                 onChange={onFileChange}
               />
@@ -190,7 +188,7 @@ export default function App() {
                       Drag and drop or click here to browse
                     </h3>
                     <p className="text-[13px] text-[#9ca3af] mb-8">
-                      PDF, DOC, DOCX, ODS, XLSX, CSV, TXT (Max. 100 MB)
+                      PDF, ODS, XLSX, CSV, TXT (Max. 100 MB)
                     </p>
                     
                     <Button
@@ -267,19 +265,11 @@ export default function App() {
                       </button>
                     </div>
 
-                    <div className="flex gap-3 w-full">
-                      <Button
-                        variant="outline"
-                        onClick={() => setFile(null)}
-                        disabled={isUploading}
-                        className="flex-1 h-12 border-[#e5e7eb] text-[#374151] font-medium"
-                      >
-                        Cancel
-                      </Button>
+                    <div className="flex flex-col gap-3 w-full">
                       <Button
                         onClick={handleUpload}
                         disabled={isUploading}
-                        className="flex-1 h-12 bg-[#0070f3] hover:bg-[#0060df] text-white font-bold transition-colors"
+                        className="w-full h-12 bg-[#0070f3] hover:bg-[#0060df] text-white font-bold transition-colors"
                       >
                         {isUploading ? (
                           <>
@@ -287,9 +277,20 @@ export default function App() {
                             Uploading...
                           </>
                         ) : (
-                          'Confirm Upload'
+                          'Confirm Upload to Webhook'
                         )}
                       </Button>
+                      
+                      <div className="flex gap-3 w-full">
+                        <Button
+                          variant="outline"
+                          onClick={() => setFile(null)}
+                          disabled={isUploading}
+                          className="flex-1 h-12 border-[#e5e7eb] text-[#374151] font-medium"
+                        >
+                          Cancel
+                        </Button>
+                      </div>
                     </div>
                   </motion.div>
                 )}
